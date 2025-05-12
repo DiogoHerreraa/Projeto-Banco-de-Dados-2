@@ -379,6 +379,23 @@ END $$
 
 DELIMITER ;
 
+/*Emitir mensagem de total de bônus*/
+
+DELIMITER $$
+
+CREATE TRIGGER trg_mensagem_total_bonus
+AFTER UPDATE ON FUNCIONARIO_ESPECIAL
+FOR EACH ROW
+BEGIN
+    DECLARE V_TOTAL FLOAT;
+
+    SELECT SUM(BONUS_TOTAL) INTO V_TOTAL FROM FUNCIONARIO_ESPECIAL;
+
+    SELECT CONCAT('🔔 Total necessário para custear todos os bônus: R$ ', FORMAT(V_TOTAL, 2)) AS AVISO;
+END $$
+
+DELIMITER ;
+
 
 
 
