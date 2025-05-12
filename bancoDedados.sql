@@ -201,9 +201,40 @@ ID_VENDEDOR INT,
 ID_CLIENTE INT,
 FOREIGN KEY(ID_VENDEDOR) REFERENCES FUNCIONARIO(ID_FUNCIONARIO),
 FOREIGN KEY(ID_CLIENTE) REFERENCES CLIENTE_PADRAO(ID_CPADRAO)
-
-
+	
 );
+
+/*CRIAÇÃO DA TABELA PRODUTO*/
+CREATE TABLE PRODUTO(
+
+IDPRODUTO INT PRIMARY KEY AUTO_INCREMENT, 
+NOME_PRODUTO VARCHAR(50),
+QUANTIDADE_PRODUTO INT,
+DESCRICAO_PRODUTO VARCHAR(100),
+VALOR_PRODUTO FLOAT(10,2)
+);
+
+/*INSERÇÕES DA TABELA PRODUTO*/
+INSERT INTO PRODUTO VALUES (NULL, 'Mouse Gamer', 44, 'Alta performance para jogos', 409.95);
+INSERT INTO PRODUTO VALUES (NULL, 'Teclado Mecânico', 63, 'Ideal para digitação e jogos', 276.99);
+INSERT INTO PRODUTO VALUES (NULL, 'Monitor LED 24"', 32, 'Imagem Full HD nítida', 1643.77);
+INSERT INTO PRODUTO VALUES (NULL, 'Notebook i5', 41, 'Equipamento leve e rápido', 2064.47);
+INSERT INTO PRODUTO VALUES (NULL, 'Smartphone Android', 61, 'Sistema atualizado com boa câmera', 2195.61);
+INSERT INTO PRODUTO VALUES (NULL, 'Carregador USB-C', 57, 'Compatível com diversos modelos', 87.66);
+INSERT INTO PRODUTO VALUES (NULL, 'Caixa de Som Bluetooth', 94, 'Som potente e portátil', 380.96);
+INSERT INTO PRODUTO VALUES (NULL, 'HD Externo 1TB', 15, 'Armazene seus dados com segurança', 316.31);
+INSERT INTO PRODUTO VALUES (NULL, 'SSD 512GB', 37, 'Alta velocidade de leitura', 437.12);
+INSERT INTO PRODUTO VALUES (NULL, 'Fone de Ouvido', 91, 'Confortável e potente', 189.94);
+INSERT INTO PRODUTO VALUES (NULL, 'Webcam Full HD', 22, 'Imagem clara para videochamadas', 272.42);
+INSERT INTO PRODUTO VALUES (NULL, 'Cabo HDMI 2.0', 78, 'Transmissão em alta resolução', 86.11);
+INSERT INTO PRODUTO VALUES (NULL, 'Placa de Vídeo', 40, 'Desempenho gráfico avançado', 2439.73);
+INSERT INTO PRODUTO VALUES (NULL, 'Fonte 600W', 95, 'Energia estável e eficiente', 378.49);
+INSERT INTO PRODUTO VALUES (NULL, 'Memória RAM 8GB', 46, 'Velocidade e estabilidade', 286.55);
+INSERT INTO PRODUTO VALUES (NULL, 'Hub USB 3.0', 73, 'Expanda suas conexões USB', 129.37);
+INSERT INTO PRODUTO VALUES (NULL, 'Tablet 10"', 52, 'Ideal para estudos e vídeos', 781.23);
+INSERT INTO PRODUTO VALUES (NULL, 'Controle Bluetooth', 38, 'Conexão rápida e sem fio', 239.98);
+INSERT INTO PRODUTO VALUES (NULL, 'Microfone Condensador', 17, 'Captação de áudio profissional', 312.84);
+INSERT INTO PRODUTO VALUES (NULL, 'Roteador Wi-Fi 5', 29, 'Sinal forte e estável', 258.64);
 
 
 
