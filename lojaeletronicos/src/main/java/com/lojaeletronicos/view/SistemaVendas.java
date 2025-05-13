@@ -22,6 +22,7 @@ import javax.swing.SwingUtilities;
 import com.lojaeletronicos.DAO.SellDAO;
 import com.lojaeletronicos.model.ClienteEspecial;
 import com.lojaeletronicos.model.Funcionario;
+import com.lojaeletronicos.model.Produto;
 
 public class SistemaVendas {
     private JFrame frame;
@@ -130,6 +131,24 @@ public class SistemaVendas {
         cadastrarProdutoPanel.add(new JLabel());
         cadastrarProdutoPanel.add(btnCadastrarProduto);
         tabbedPane.addTab("Cadastrar Produto", cadastrarProdutoPanel);
+
+        // Listar Produtos Panel
+        JPanel listarProdutosPanel = new JPanel();
+        listarProdutosPanel.setLayout(new BorderLayout());
+        JTextArea txtProdutos = new JTextArea();
+        txtProdutos.setEditable(false);
+        JScrollPane scrollProdutos = new JScrollPane(txtProdutos);
+        JButton btnAtualizarProdutos = new JButton("Atualizar Lista de Produtos");
+        btnAtualizarProdutos.addActionListener(e -> {
+            txtProdutos.setText("");
+            List<Produto> produtos = vendaDAO.listarProdutos();
+            for (Produto produto : produtos) {
+                txtProdutos.append("Nome: " + produto.getNome() + ", Quantidade: " + produto.getQuantidade() + "\n");
+            }
+        });
+        listarProdutosPanel.add(scrollProdutos, BorderLayout.CENTER);
+        listarProdutosPanel.add(btnAtualizarProdutos, BorderLayout.SOUTH);
+        tabbedPane.addTab("Listar Produtos", listarProdutosPanel);
 
         // Cadastrar Funcionário Panel
         JPanel cadastrarFuncionarioPanel = new JPanel();

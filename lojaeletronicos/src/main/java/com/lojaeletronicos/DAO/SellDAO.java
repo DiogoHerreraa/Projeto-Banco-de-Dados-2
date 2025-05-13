@@ -3,6 +3,7 @@ package com.lojaeletronicos.DAO;
 import com.lojaeletronicos.model.ClienteEspecial;
 import com.lojaeletronicos.model.Funcionario;
 import com.lojaeletronicos.model.Produto;
+import com.lojaeletronicos.model.Venda;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -118,6 +119,29 @@ public class SellDAO {
             logger.log(Level.SEVERE, "Erro ao listar produtos", e);
         }
         return produtos;
+    }
+
+    public List<Venda> listarVendas() {
+        List<Venda> vendas = new ArrayList<>();
+        String sql = "SELECT id, id_vendedor, id_cliente, data FROM venda";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                vendas.add(new Venda(
+                    rs.getInt("id"),
+                    rs.getInt("id_vendedor"),
+                    rs.getInt("id_cliente"),
+                    rs.getDate("data")
+                ));
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Erro ao listar vendas", e);
+        }
+        return vendas;
     }
 
     public List<String> listarVendasPorFuncionario() {
