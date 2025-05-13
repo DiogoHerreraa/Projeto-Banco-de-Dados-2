@@ -110,7 +110,7 @@ public class SistemaVendas {
                 int quantidade = Integer.parseInt(txtQuantidadeProduto.getText());
                 String descricao = txtDescricaoProduto.getText();
                 BigDecimal valor = new BigDecimal(txtValorProduto.getText());
-                vendaDAO.cadastroProdutos(nome, quantidade, descricao, valor);
+                vendaDAO.cadastrarProduto(nome, quantidade, descricao, valor);
                 txtNomeProduto.setText("");
                 txtQuantidadeProduto.setText("");
                 txtDescricaoProduto.setText("");

@@ -4,43 +4,43 @@ import com.lojaeletronicos.model.ClienteEspecial;
 import com.lojaeletronicos.model.Funcionario;
 import com.lojaeletronicos.model.Produto;
 
-import javax.swing.JOptionPane;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SellDAO {
 
-    private void showMessage(String message) {
-        JOptionPane.showMessageDialog(null, message);
-    }
+    private static final Logger logger = Logger.getLogger(SellDAO.class.getName());
 
     public void cadastrarProduto(String nome, int quantidade, String descricao, BigDecimal valor) {
         String sql = "INSERT INTO produto (nome, quantidade, descricao, valor) VALUES (?, ?, ?, ?)";
-
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            conn.setAutoCommit(false);
             stmt.setString(1, nome);
             stmt.setInt(2, quantidade);
             stmt.setString(3, descricao);
             stmt.setBigDecimal(4, valor);
             stmt.executeUpdate();
-            showMessage("Produto cadastrado com sucesso!");
+            conn.commit();
+            logger.info("Produto cadastrado com sucesso: " + nome);
 
         } catch (SQLException e) {
-            showMessage("Erro ao cadastrar produto: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao cadastrar produto", e);
         }
     }
 
-    public void cadastrarFuncionario(String nome, int idade, String sexo, String cargo, BigDecimal salario, Date nascimento) {
+    public void cadastroFuncionario(String nome, int idade, String sexo, String cargo, BigDecimal salario, Date nascimento) {
         String sql = "INSERT INTO funcionario (nome, idade, sexo, cargo, salario, nascimento) VALUES (?, ?, ?, ?, ?, ?)";
-
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            conn.setAutoCommit(false);
             stmt.setString(1, nome);
             stmt.setInt(2, idade);
             stmt.setString(3, sexo.toUpperCase());
@@ -48,10 +48,11 @@ public class SellDAO {
             stmt.setBigDecimal(5, salario);
             stmt.setDate(6, nascimento);
             stmt.executeUpdate();
-            showMessage("Funcionário cadastrado com sucesso!");
+            conn.commit();
+            logger.info("Funcionário cadastrado com sucesso: " + nome);
 
         } catch (SQLException e) {
-            showMessage("Erro ao cadastrar funcionário: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao cadastrar funcionário", e);
         }
     }
 
@@ -60,31 +61,33 @@ public class SellDAO {
             SELECT f.nome AS nome_funcionario, c.nome AS nome_cliente, p.nome AS nome_produto, p.valor AS valor_unitario
             FROM funcionario f, cliente c, produto p
             WHERE f.id = ? AND c.id = ? AND p.id = ?
-            """;
+        """;
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement consulta = conn.prepareStatement(sqlConsulta)) {
 
+            conn.setAutoCommit(false);
             consulta.setInt(1, idVendedor);
             consulta.setInt(2, idCliente);
             consulta.setInt(3, idProduto);
-
             ResultSet rs = consulta.executeQuery();
 
             if (rs.next()) {
                 registrarVendaInterna(conn, idVendedor, idCliente, idProduto, quantidade, rs);
+                conn.commit();
+                logger.info("Venda registrada com sucesso.");
             } else {
-                showMessage("Vendedor, cliente ou produto inválido.");
+                logger.warning("IDs inválidos para venda.");
+                conn.rollback();
             }
 
         } catch (SQLException e) {
-            showMessage("Erro ao registrar venda: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao registrar venda", e);
         }
     }
 
     private void registrarVendaInterna(Connection conn, int idVendedor, int idCliente, int idProduto, int quantidade, ResultSet rs) throws SQLException {
         String sql = "SELECT registrar_venda(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDate(1, new Date(System.currentTimeMillis()));
             stmt.setInt(2, idVendedor);
@@ -96,7 +99,6 @@ public class SellDAO {
             stmt.setInt(8, quantidade);
             stmt.setBigDecimal(9, rs.getBigDecimal("valor_unitario"));
             stmt.execute();
-            showMessage("Venda registrada com sucesso!");
         }
     }
 
@@ -113,7 +115,7 @@ public class SellDAO {
             }
 
         } catch (SQLException e) {
-            showMessage("Erro ao listar produtos: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao listar produtos", e);
         }
         return produtos;
     }
@@ -131,7 +133,7 @@ public class SellDAO {
             }
 
         } catch (SQLException e) {
-            showMessage("Erro ao listar vendas por funcionário: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao listar vendas por funcionário", e);
         }
         return vendas;
     }
@@ -142,13 +144,15 @@ public class SellDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            conn.setAutoCommit(false);
             stmt.setString(1, categoria.toUpperCase());
             stmt.setDouble(2, percentual);
             stmt.execute();
-            showMessage("Reajuste de " + percentual + "% aplicado à categoria " + categoria);
+            conn.commit();
+            logger.info("Reajuste de " + percentual + "% aplicado à categoria " + categoria);
 
         } catch (SQLException e) {
-            showMessage("Erro ao reajustar salário: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao reajustar salário", e);
         }
     }
 
@@ -158,31 +162,34 @@ public class SellDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement()) {
 
+            conn.setAutoCommit(false);
             stmt.execute("SELECT realizar_sorteio()");
             ResultSet rs = stmt.executeQuery("SELECT * FROM cliente_especial");
 
             while (rs.next()) {
                 clientesEspeciais.add(new ClienteEspecial(
-                    rs.getInt("id"),
-                    rs.getString("nome"),
-                    rs.getString("sexo"),
-                    rs.getInt("idade"),
-                    rs.getInt("id_cliente"),
-                    rs.getBigDecimal("cashback")
+                        rs.getInt("id"),
+                        rs.getString("nome"),
+                        rs.getString("sexo"),
+                        rs.getInt("idade"),
+                        rs.getInt("id_cliente"),
+                        rs.getBigDecimal("cashback")
                 ));
             }
 
             if (clientesEspeciais.isEmpty()) {
-                showMessage("Nenhum cliente especial disponível.");
+                logger.warning("Nenhum cliente especial disponível.");
+                conn.rollback();
                 return null;
             }
 
             ClienteEspecial sorteado = clientesEspeciais.get(new Random().nextInt(clientesEspeciais.size()));
-            showMessage("Cliente sorteado: " + sorteado.getNome() + " (ID: " + sorteado.getIdCliente() + ")");
+            conn.commit();
+            logger.info("Cliente sorteado: " + sorteado.getNome() + " (ID: " + sorteado.getIdCliente() + ")");
             return sorteado;
 
         } catch (SQLException e) {
-            showMessage("Erro ao realizar sorteio: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao realizar sorteio", e);
             return null;
         }
     }
@@ -197,18 +204,18 @@ public class SellDAO {
 
             while (rs.next()) {
                 funcionarios.add(new Funcionario(
-                    rs.getInt("id"),
-                    rs.getString("nome"),
-                    rs.getInt("idade"),
-                    rs.getString("sexo"),
-                    rs.getString("cargo"),
-                    rs.getBigDecimal("salario"),
-                    rs.getDate("nascimento")
+                        rs.getInt("id"),
+                        rs.getString("nome"),
+                        rs.getInt("idade"),
+                        rs.getString("sexo"),
+                        rs.getString("cargo"),
+                        rs.getBigDecimal("salario"),
+                        rs.getDate("nascimento")
                 ));
             }
 
         } catch (SQLException e) {
-            showMessage("Erro ao listar funcionários: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao listar funcionários", e);
         }
         return funcionarios;
     }
@@ -234,7 +241,7 @@ public class SellDAO {
             }
 
         } catch (SQLException e) {
-            showMessage("Erro ao obter estatísticas: " + e.getMessage());
+            logger.log(Level.SEVERE, "Erro ao obter estatísticas", e);
         }
         return sb.toString();
     }
