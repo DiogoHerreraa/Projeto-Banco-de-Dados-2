@@ -495,7 +495,42 @@ END $$
 DELIMITER ;
 
 
+/* Emitir mensagem com total de cashback necessário*/
 
+
+DELIMITER $$
+
+CREATE TRIGGER trg_mensagem_total_cashback
+AFTER UPDATE ON CLIENTE_ESPECIAL
+FOR EACH ROW
+BEGIN
+    DECLARE V_TOTAL_CASHBACK FLOAT;
+
+    SELECT SUM(CASHBACK) INTO V_TOTAL_CASHBACK FROM CLIENTE_ESPECIAL;
+
+    SELECT CONCAT('🔔 Valor necessário para custear todos os cashbacks: R$ ', FORMAT(V_TOTAL_CASHBACK, 2)) AS AVISO;
+END $$
+
+DELIMITER ;
+
+
+   
+/*Remover cliente especial com cashback zerado*/
+
+
+
+		  DELIMITER $$
+
+CREATE TRIGGER trg_remover_cliente_cashback_zero
+AFTER UPDATE ON CLIENTE_ESPECIAL
+FOR EACH ROW
+BEGIN
+    IF NEW.CASHBACK = 0 THEN
+        DELETE FROM CLIENTE_ESPECIAL WHERE ID_CLIENTE = NEW.ID_CLIENTE;
+    END IF;
+END $$
+
+DELIMITER ;
 
 
 -- PRODUTO MAIS VENDIDO (por quantidade total)
