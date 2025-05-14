@@ -30,6 +30,7 @@ public class SistemaVendas {
         tabs.add("Estatísticas",        abaEstatisticas());
         tabs.add("Cadastrar Produto",   abaCadastrarProduto());
         tabs.add("Cadastrar Funcionário", abaCadastrarFuncionario());
+        tabs.add("Cadastrar Cliente", abaCadastrarCliente());
         tabs.add("Listar Produtos",     abaListarProdutos());
         tabs.add("Listar Funcionários", abaListarFuncionarios());
         tabs.add("Sorteio",             abaSorteio());
@@ -205,10 +206,11 @@ public class SistemaVendas {
                    c=new JTextField(),
                    sal=new JTextField(),
                    nas=new JTextField();
+        JComboBox<String> sexo = new JComboBox<>(new String[]{"M", "F", "O"});
 
         p.add(new JLabel("Nome:")); p.add(n);
         p.add(new JLabel("Idade:")); p.add(i);
-        p.add(new JLabel("Sexo (M/F/O):")); p.add(s);
+        p.add(new JLabel("Sexo:")); p.add(sexo);
         p.add(new JLabel("Cargo:")); p.add(c);
         p.add(new JLabel("Salário R$:")); p.add(sal);
         p.add(new JLabel("Nascimento (yyyy-MM-dd):")); p.add(nas);
@@ -216,17 +218,21 @@ public class SistemaVendas {
         JButton btn = new JButton("Salvar");
         btn.addActionListener(e -> {
             try {
+                String sexoStr = (String) sexo.getSelectedItem(); // agora pegamos como String corretamente
                 java.sql.Date nascimento = new java.sql.Date(
                         new SimpleDateFormat("yyyy-MM-dd")
                                 .parse(nas.getText()).getTime());
+
                 dao.cadastrarFuncionario(
                         n.getText(),
                         Integer.parseInt(i.getText()),
-                        s.getText(), c.getText(),
+                        sexoStr,
+                        c.getText(),
                         new BigDecimal(sal.getText()),
                         nascimento);
-                n.setText(""); i.setText(""); s.setText("");
-                c.setText(""); sal.setText(""); nas.setText("");
+
+                n.setText(""); i.setText(""); c.setText(""); sal.setText(""); nas.setText("");
+                sexo.setSelectedIndex(0); 
             } catch (NumberFormatException | ParseException ex) {
                 JOptionPane.showMessageDialog(frame, "Dados inválidos.");
             }
@@ -234,6 +240,45 @@ public class SistemaVendas {
         p.add(new JLabel()); p.add(btn);
         return p;
     }
+
+    /* ---------------- cadastro cliente ------------------ */
+    private JPanel abaCadastrarCliente() {
+        JPanel p = new JPanel(new GridLayout(5,2));
+        
+        JTextField nome = new JTextField();
+        JComboBox<String> sexo = new JComboBox<>(new String[]{"M", "F", "O"});
+        JTextField idade = new JTextField();
+        JTextField nascimento = new JTextField(); // yyyy-MM-dd
+
+        p.add(new JLabel("Nome:")); p.add(nome);
+        p.add(new JLabel("Sexo:")); p.add(sexo);
+        p.add(new JLabel("Idade:")); p.add(idade);
+        p.add(new JLabel("Nascimento (yyyy-MM-dd):")); p.add(nascimento);
+
+        JButton btn = new JButton("Salvar");
+        btn.addActionListener(e -> {
+            try {
+                String s = (String) sexo.getSelectedItem();
+                java.sql.Date nasc = java.sql.Date.valueOf(nascimento.getText());
+
+                dao.cadastrarCliente(
+                    nome.getText(),
+                    s,
+                    Integer.parseInt(idade.getText()),
+                    nasc
+                );
+
+                nome.setText(""); idade.setText(""); nascimento.setText(""); sexo.setSelectedIndex(0);
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Dados inválidos.");
+            }
+        });
+
+        p.add(new JLabel()); p.add(btn);
+        return p;
+    }
+
 
     /* ---------------- listar produtos ------------------ */
     private JPanel abaListarProdutos() {

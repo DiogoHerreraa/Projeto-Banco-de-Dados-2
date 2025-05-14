@@ -55,7 +55,7 @@ public class OperacaoComercial {
             conn.setAutoCommit(false);
             ps.setString     (1, nome);
             ps.setInt        (2, idade);
-            ps.setString     (3, sexo.toUpperCase());
+            ps.setString(3, sexo.toUpperCase()); 
             ps.setString     (4, cargo.toUpperCase());
             ps.setBigDecimal (5, salario);
             ps.setDate       (6, nascimento);
@@ -67,6 +67,27 @@ public class OperacaoComercial {
             logger.log(Level.SEVERE, "Erro ao cadastrar funcionário", e);
         }
     }
+
+    public void cadastrarCliente(String nome, String sexo, int idade, Date nascimento) {
+        String sql = "INSERT INTO cliente (nome, sexo, idade, nascimento) VALUES (?,?,?,?)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            conn.setAutoCommit(false);
+            ps.setString(1, nome);
+            ps.setString(2, sexo.toUpperCase());
+            ps.setInt(3, idade);
+            ps.setDate(4, nascimento);
+            ps.executeUpdate();
+            conn.commit();
+            logger.info("Cliente cadastrado: " + nome);
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Erro ao cadastrar cliente", e);
+        }
+    }
+
 
     public void registrarVenda(int idVendedor, int idCliente,
                                int idProduto, int quantidade) {
