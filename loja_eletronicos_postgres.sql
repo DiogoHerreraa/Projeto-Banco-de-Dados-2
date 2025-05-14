@@ -91,7 +91,44 @@ INSERT INTO produto (nome, quantidade, descricao, valor) VALUES
 ('Tablet 10"', 52, 'Ideal para estudos e vídeos', 781.23),
 ('Controle Bluetooth', 38, 'Conexão rápida e sem fio', 239.98),
 ('Microfone Condensador', 17, 'Captação de áudio profissional', 312.84),
-('Roteador Wi-Fi 5', 29, 'Sinal forte e estável', 258.64);
+('Roteador Wi-Fi 5', 29, 'Sinal forte e estável', 258.64),
+('Notebook i5', 15, 'Notebook rápido e leve', 3500.00),
+('Teclado Mecânico RGB', 40, 'Teclado com luzes e resposta rápida', 280.00),
+('Mouse Gamer', 50, 'Alta precisão para jogos', 220.00),
+('Monitor LED 24"', 30, 'Imagem Full HD', 980.00),
+('Headset Surround', 60, 'Áudio imersivo', 300.00);
+
+INSERT INTO funcionario (nome, idade, sexo, cargo, salario, nascimento) VALUES
+('Viviane Ramos', 59, 'F', 'CEO', 22127.00, '1964-01-08'),
+('Alan Torres', 49, 'M', 'FINANCEIRO', 5367.00, '1975-08-21'),
+('Wanda Martins', 45, 'F', 'VENDEDOR', 4476.00, '1979-03-25'),
+('William Rocha', 50, 'M', 'VENDEDOR', 6986.00, '1974-03-08'),
+('Kelly Santos', 36, 'F', 'VENDEDOR', 6601.00, '1988-12-13'),
+('Paulo Henrique', 24, 'M', 'ATENDENTE DE SUPORTE AO CLIENTE', 2905.00, '2000-08-18');
+
+INSERT INTO cliente (nome, sexo, idade, nascimento) VALUES
+('Antonio Castelão', 'M', 24, '2001-05-10'),
+('Larissa Silva', 'F', 29, '1995-03-22'),
+('Lucas Moraes', 'O', 25, '2000-11-24'),
+('Joana Lima', 'F', 41, '1983-02-17'),
+('Felipe Alves', 'M', 35, '1989-06-05'),
+('Beatriz Costa', 'F', 27, '1997-09-14'),
+('Daniel Oliveira', 'M', 31, '1993-04-01'),
+('Patrícia Souza', 'F', 22, '2002-01-15'),
+('Gustavo Pereira', 'M', 30, '1994-12-10'),
+('Ximena Duarte', 'O', 28, '1996-07-03');
+
+INSERT INTO venda (data_venda, id_vendedor, nome_funcionario, id_cliente, nome_cliente) VALUES
+('2025-05-10', 3, 'Wanda Martins', 1, 'Antonio Castelão'),
+('2025-05-10', 4, 'William Rocha', 5, 'Felipe Alves'),
+('2025-05-10', 5, 'Kelly Santos', 7, 'Daniel Oliveira'),
+('2025-05-10', 3, 'Wanda Martins', 10, 'Ximena Duarte');
+
+INSERT INTO item_venda (id_venda, id_produto, nome_produto_vendido, quantidade, valor_unitario, valor_total) VALUES
+(1, 2, 'Teclado Mecânico RGB', 2, 280.00, 560.00),
+(2, 3, 'Mouse Gamer', 3, 220.00, 660.00),
+(3, 1, 'Notebook i5', 1, 3500.00, 3500.00),
+(4, 5, 'Headset Surround', 2, 300.00, 600.00);
 
 CREATE OR REPLACE VIEW view_produtos_quantidade AS
 SELECT nome, quantidade
