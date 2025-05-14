@@ -19,17 +19,17 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import com.lojaeletronicos.DAO.SellDAO;
+import com.lojaeletronicos.DAO.OperacaoComercial;
 import com.lojaeletronicos.model.ClienteEspecial;
 import com.lojaeletronicos.model.Funcionario;
 import com.lojaeletronicos.model.Produto;
 
 public class SistemaVendas {
     private JFrame frame;
-    private SellDAO vendaDAO;
+    private OperacaoComercial vendaDAO;
 
     public SistemaVendas() {
-        vendaDAO = new SellDAO();
+        vendaDAO = new OperacaoComercial();
         initialize();
     }
 
@@ -176,7 +176,7 @@ public class SistemaVendas {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 Date nascimentoUtil = sdf.parse(txtNascimentoFuncionario.getText());
                 java.sql.Date nascimentoSql = new java.sql.Date(nascimentoUtil.getTime());
-                vendaDAO.cadastroFuncionario(nome, idade, sexo, cargo, salario, nascimentoSql);
+                vendaDAO.cadastrarFuncionario(nome, idade, sexo, cargo, salario, nascimentoSql);
                 txtNomeFuncionario.setText("");
                 txtIdadeFuncionario.setText("");
                 txtSexoFuncionario.setText("");

@@ -6,16 +6,25 @@ import com.lojaeletronicos.model.Produto;
 import com.lojaeletronicos.model.Venda;
 
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SellDAO {
+public class OperacaoComercial {
 
-    private static final Logger logger = Logger.getLogger(SellDAO.class.getName());
+    private static final Logger logger = Logger.getLogger(OperacaoComercial.class.getName());
+
+    // ============================
+    // CADASTROS
+    // ============================
 
     public void cadastrarProduto(String nome, int quantidade, String descricao, BigDecimal valor) {
         String sql = "INSERT INTO produto (nome, quantidade, descricao, valor) VALUES (?, ?, ?, ?)";
@@ -36,7 +45,7 @@ public class SellDAO {
         }
     }
 
-    public void cadastroFuncionario(String nome, int idade, String sexo, String cargo, BigDecimal salario, Date nascimento) {
+    public void cadastrarFuncionario(String nome, int idade, String sexo, String cargo, BigDecimal salario, Date nascimento) {
         String sql = "INSERT INTO funcionario (nome, idade, sexo, cargo, salario, nascimento) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -56,6 +65,10 @@ public class SellDAO {
             logger.log(Level.SEVERE, "Erro ao cadastrar funcionário", e);
         }
     }
+
+    // ============================
+    // REGISTROS
+    // ============================
 
     public void registrarVenda(int idVendedor, int idCliente, int idProduto, int quantidade) {
         String sqlConsulta = """
@@ -102,6 +115,10 @@ public class SellDAO {
             stmt.execute();
         }
     }
+
+    // ============================
+    // LISTAGENS
+    // ============================
 
     public List<Produto> listarProdutos() {
         List<Produto> produtos = new ArrayList<>();
@@ -162,22 +179,60 @@ public class SellDAO {
         return vendas;
     }
 
-    public void reajustarSalario(String categoria, double percentual) {
-        String sql = "SELECT reajustar_salario(?, ?)";
+    public List<Funcionario> listarFuncionarios() {
+        List<Funcionario> funcionarios = new ArrayList<>();
+        String sql = "SELECT id, nome, idade, sexo, cargo, salario, nascimento FROM funcionario";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
-            conn.setAutoCommit(false);
-            stmt.setString(1, categoria.toUpperCase());
-            stmt.setDouble(2, percentual);
-            stmt.execute();
-            conn.commit();
-            logger.info("Reajuste de " + percentual + "% aplicado à categoria " + categoria);
+            while (rs.next()) {
+                funcionarios.add(new Funcionario(
+                        rs.getInt("id"),
+                        rs.getString("nome"),
+                        rs.getInt("idade"),
+                        rs.getString("sexo"),
+                        rs.getString("cargo"),
+                        rs.getBigDecimal("salario"),
+                        rs.getDate("nascimento")
+                ));
+            }
 
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Erro ao reajustar salário", e);
+            logger.log(Level.SEVERE, "Erro ao listar funcionários", e);
         }
+        return funcionarios;
+    }
+
+    // ============================
+    // ESTATÍSTICAS E SORTEIOS
+    // ============================
+
+    public String obterEstatisticas() {
+        StringBuilder sb = new StringBuilder();
+        String sql = "SELECT * FROM calcular_estatisticas()";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                sb.append("Produto mais vendido: ").append(rs.getString("produto_mais_vendido")).append("\n")
+                  .append("Vendedor associado: ").append(rs.getString("vendedor_mais_vendido")).append("\n")
+                  .append("Produto menos vendido: ").append(rs.getString("produto_menos_vendido")).append("\n")
+                  .append("Valor ganho com o mais vendido: R$ ").append(rs.getBigDecimal("valor_mais_vendido")).append("\n")
+                  .append("Mês de maior venda (mais vendido): ").append(rs.getInt("mes_maior_venda_mais_vendido")).append("\n")
+                  .append("Mês de menor venda (mais vendido): ").append(rs.getInt("mes_menor_venda_mais_vendido")).append("\n")
+                  .append("Valor ganho com o menos vendido: R$ ").append(rs.getBigDecimal("valor_menos_vendido")).append("\n")
+                  .append("Mês de maior venda (menos vendido): ").append(rs.getInt("mes_maior_venda_menos_vendido")).append("\n")
+                  .append("Mês de menor venda (menos vendido): ").append(rs.getInt("mes_menor_venda_menos_vendido")).append("\n");
+            }
+
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Erro ao obter estatísticas", e);
+        }
+        return sb.toString();
     }
 
     public ClienteEspecial realizarSorteio() {
@@ -218,55 +273,21 @@ public class SellDAO {
         }
     }
 
-    public List<Funcionario> listarFuncionarios() {
-        List<Funcionario> funcionarios = new ArrayList<>();
-        String sql = "SELECT id, nome, idade, sexo, cargo, salario, nascimento FROM funcionario";
+    public void reajustarSalario(String categoria, double percentual) {
+        String sql = "SELECT reajustar_salario(?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                funcionarios.add(new Funcionario(
-                        rs.getInt("id"),
-                        rs.getString("nome"),
-                        rs.getInt("idade"),
-                        rs.getString("sexo"),
-                        rs.getString("cargo"),
-                        rs.getBigDecimal("salario"),
-                        rs.getDate("nascimento")
-                ));
-            }
+            conn.setAutoCommit(false);
+            stmt.setString(1, categoria.toUpperCase());
+            stmt.setDouble(2, percentual);
+            stmt.execute();
+            conn.commit();
+            logger.info("Reajuste de " + percentual + "% aplicado à categoria " + categoria);
 
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Erro ao listar funcionários", e);
+            logger.log(Level.SEVERE, "Erro ao reajustar salário", e);
         }
-        return funcionarios;
-    }
-
-    public String obterEstatisticas() {
-        StringBuilder sb = new StringBuilder();
-        String sql = "SELECT * FROM calcular_estatisticas()";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            if (rs.next()) {
-                sb.append("Produto mais vendido: ").append(rs.getString("produto_mais_vendido")).append("\n")
-                  .append("Vendedor associado: ").append(rs.getString("vendedor_mais_vendido")).append("\n")
-                  .append("Produto menos vendido: ").append(rs.getString("produto_menos_vendido")).append("\n")
-                  .append("Valor ganho com o mais vendido: R$ ").append(rs.getBigDecimal("valor_mais_vendido")).append("\n")
-                  .append("Mês de maior venda (mais vendido): ").append(rs.getInt("mes_maior_venda_mais_vendido")).append("\n")
-                  .append("Mês de menor venda (mais vendido): ").append(rs.getInt("mes_menor_venda_mais_vendido")).append("\n")
-                  .append("Valor ganho com o menos vendido: R$ ").append(rs.getBigDecimal("valor_menos_vendido")).append("\n")
-                  .append("Mês de maior venda (menos vendido): ").append(rs.getInt("mes_maior_venda_menos_vendido")).append("\n")
-                  .append("Mês de menor venda (menos vendido): ").append(rs.getInt("mes_menor_venda_menos_vendido")).append("\n");
-            }
-
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Erro ao obter estatísticas", e);
-        }
-        return sb.toString();
     }
 }
