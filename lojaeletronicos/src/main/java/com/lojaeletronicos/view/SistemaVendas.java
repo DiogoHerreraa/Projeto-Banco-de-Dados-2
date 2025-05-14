@@ -1,285 +1,315 @@
 package com.lojaeletronicos.view;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import com.lojaeletronicos.DAO.OperacaoComercial;
+import com.lojaeletronicos.model.*;
+
+import javax.swing.*;
+import java.awt.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-
-import com.lojaeletronicos.DAO.OperacaoComercial;
-import com.lojaeletronicos.model.ClienteEspecial;
-import com.lojaeletronicos.model.Funcionario;
-import com.lojaeletronicos.model.Produto;
-
 public class SistemaVendas {
-    private JFrame frame;
-    private OperacaoComercial vendaDAO;
 
-    public SistemaVendas() {
-        vendaDAO = new OperacaoComercial();
-        initialize();
-    }
-
-    private void initialize() {
-        frame = new JFrame("Sistema de Vendas - Eletrônicos");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
-
-        JTabbedPane tabbedPane = new JTabbedPane();
-
-        // Vendas Panel
-        JPanel vendasPanel = new JPanel();
-        vendasPanel.setLayout(new GridLayout(5, 2));
-        JLabel lblVendedor = new JLabel("Vendedor ID:");
-        JTextField txtVendedor = new JTextField();
-        JLabel lblCliente = new JLabel("Cliente ID:");
-        JTextField txtCliente = new JTextField();
-        JLabel lblProduto = new JLabel("Produto ID:");
-        JTextField txtProduto = new JTextField();
-        JLabel lblQuantidade = new JLabel("Quantidade:");
-        JTextField txtQuantidade = new JTextField();
-        JButton btnRegistrar = new JButton("Registrar Venda");
-        btnRegistrar.addActionListener(e -> {
-            try {
-                int idVendedor = Integer.parseInt(txtVendedor.getText());
-                int idCliente = Integer.parseInt(txtCliente.getText());
-                int idProduto = Integer.parseInt(txtProduto.getText());
-                int quantidade = Integer.parseInt(txtQuantidade.getText());
-                vendaDAO.registrarVenda(idVendedor, idCliente, idProduto, quantidade);
-                txtVendedor.setText("");
-                txtCliente.setText("");
-                txtProduto.setText("");
-                txtQuantidade.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Por favor, insira valores válidos.");
-            }
-        });
-        vendasPanel.add(lblVendedor);
-        vendasPanel.add(txtVendedor);
-        vendasPanel.add(lblCliente);
-        vendasPanel.add(txtCliente);
-        vendasPanel.add(lblProduto);
-        vendasPanel.add(txtProduto);
-        vendasPanel.add(lblQuantidade);
-        vendasPanel.add(txtQuantidade);
-        vendasPanel.add(new JLabel());
-        vendasPanel.add(btnRegistrar);
-        tabbedPane.addTab("Vendas", vendasPanel);
-
-        // Estatísticas Panel
-        JPanel estatisticasPanel = new JPanel();
-        estatisticasPanel.setLayout(new BorderLayout());
-        JTextArea txtEstatisticas = new JTextArea();
-        txtEstatisticas.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(txtEstatisticas);
-        JButton btnAtualizarEstatisticas = new JButton("Atualizar Estatísticas");
-        btnAtualizarEstatisticas.addActionListener(e -> {
-            txtEstatisticas.setText(vendaDAO.obterEstatisticas());
-        });
-        estatisticasPanel.add(scrollPane, BorderLayout.CENTER);
-        estatisticasPanel.add(btnAtualizarEstatisticas, BorderLayout.SOUTH);
-        tabbedPane.addTab("Estatísticas", estatisticasPanel);
-
-        // Cadastrar Produto Panel
-        JPanel cadastrarProdutoPanel = new JPanel();
-        cadastrarProdutoPanel.setLayout(new GridLayout(6, 2));
-        JLabel lblNomeProduto = new JLabel("Nome:");
-        JTextField txtNomeProduto = new JTextField();
-        JLabel lblQuantidadeProduto = new JLabel("Quantidade:");
-        JTextField txtQuantidadeProduto = new JTextField();
-        JLabel lblDescricaoProduto = new JLabel("Descrição:");
-        JTextField txtDescricaoProduto = new JTextField();
-        JLabel lblValorProduto = new JLabel("Valor:");
-        JTextField txtValorProduto = new JTextField();
-        JButton btnCadastrarProduto = new JButton("Cadastrar Produto");
-        btnCadastrarProduto.addActionListener(e -> {
-            try {
-                String nome = txtNomeProduto.getText();
-                int quantidade = Integer.parseInt(txtQuantidadeProduto.getText());
-                String descricao = txtDescricaoProduto.getText();
-                BigDecimal valor = new BigDecimal(txtValorProduto.getText());
-                vendaDAO.cadastrarProduto(nome, quantidade, descricao, valor);
-                txtNomeProduto.setText("");
-                txtQuantidadeProduto.setText("");
-                txtDescricaoProduto.setText("");
-                txtValorProduto.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Quantidade e Valor devem ser números válidos.");
-            }
-        });
-        cadastrarProdutoPanel.add(lblNomeProduto);
-        cadastrarProdutoPanel.add(txtNomeProduto);
-        cadastrarProdutoPanel.add(lblQuantidadeProduto);
-        cadastrarProdutoPanel.add(txtQuantidadeProduto);
-        cadastrarProdutoPanel.add(lblDescricaoProduto);
-        cadastrarProdutoPanel.add(txtDescricaoProduto);
-        cadastrarProdutoPanel.add(lblValorProduto);
-        cadastrarProdutoPanel.add(txtValorProduto);
-        cadastrarProdutoPanel.add(new JLabel());
-        cadastrarProdutoPanel.add(btnCadastrarProduto);
-        tabbedPane.addTab("Cadastrar Produto", cadastrarProdutoPanel);
-
-        // Listar Produtos Panel
-        JPanel listarProdutosPanel = new JPanel();
-        listarProdutosPanel.setLayout(new BorderLayout());
-        JTextArea txtProdutos = new JTextArea();
-        txtProdutos.setEditable(false);
-        JScrollPane scrollProdutos = new JScrollPane(txtProdutos);
-        JButton btnAtualizarProdutos = new JButton("Atualizar Lista de Produtos");
-        btnAtualizarProdutos.addActionListener(e -> {
-            txtProdutos.setText("");
-            List<Produto> produtos = vendaDAO.listarProdutos();
-            for (Produto produto : produtos) {
-                txtProdutos.append("Nome: " + produto.getNome() + ", Quantidade: " + produto.getQuantidade() + "\n");
-            }
-        });
-        listarProdutosPanel.add(scrollProdutos, BorderLayout.CENTER);
-        listarProdutosPanel.add(btnAtualizarProdutos, BorderLayout.SOUTH);
-        tabbedPane.addTab("Listar Produtos", listarProdutosPanel);
-
-        // Cadastrar Funcionário Panel
-        JPanel cadastrarFuncionarioPanel = new JPanel();
-        cadastrarFuncionarioPanel.setLayout(new GridLayout(7, 2));
-        JLabel lblNomeFuncionario = new JLabel("Nome:");
-        JTextField txtNomeFuncionario = new JTextField();
-        JLabel lblIdadeFuncionario = new JLabel("Idade:");
-        JTextField txtIdadeFuncionario = new JTextField();
-        JLabel lblSexoFuncionario = new JLabel("Sexo (M/F/O):");
-        JTextField txtSexoFuncionario = new JTextField();
-        JLabel lblCargoFuncionario = new JLabel("Cargo:");
-        JTextField txtCargoFuncionario = new JTextField();
-        JLabel lblSalarioFuncionario = new JLabel("Salário:");
-        JTextField txtSalarioFuncionario = new JTextField();
-        JLabel lblNascimentoFuncionario = new JLabel("Nascimento (yyyy-MM-dd):");
-        JTextField txtNascimentoFuncionario = new JTextField();
-        JButton btnCadastrarFuncionario = new JButton("Cadastrar Funcionário");
-        btnCadastrarFuncionario.addActionListener(e -> {
-            try {
-                String nome = txtNomeFuncionario.getText();
-                int idade = Integer.parseInt(txtIdadeFuncionario.getText());
-                String sexo = txtSexoFuncionario.getText();
-                String cargo = txtCargoFuncionario.getText();
-                BigDecimal salario = new BigDecimal(txtSalarioFuncionario.getText());
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                Date nascimentoUtil = sdf.parse(txtNascimentoFuncionario.getText());
-                java.sql.Date nascimentoSql = new java.sql.Date(nascimentoUtil.getTime());
-                vendaDAO.cadastrarFuncionario(nome, idade, sexo, cargo, salario, nascimentoSql);
-                txtNomeFuncionario.setText("");
-                txtIdadeFuncionario.setText("");
-                txtSexoFuncionario.setText("");
-                txtCargoFuncionario.setText("");
-                txtSalarioFuncionario.setText("");
-                txtNascimentoFuncionario.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Idade e Salário devem ser números válidos.");
-            } catch (ParseException ex) {
-                JOptionPane.showMessageDialog(frame, "Data inválida. Use o formato yyyy-MM-dd.");
-            }
-        });
-        cadastrarFuncionarioPanel.add(lblNomeFuncionario);
-        cadastrarFuncionarioPanel.add(txtNomeFuncionario);
-        cadastrarFuncionarioPanel.add(lblIdadeFuncionario);
-        cadastrarFuncionarioPanel.add(txtIdadeFuncionario);
-        cadastrarFuncionarioPanel.add(lblSexoFuncionario);
-        cadastrarFuncionarioPanel.add(txtSexoFuncionario);
-        cadastrarFuncionarioPanel.add(lblCargoFuncionario);
-        cadastrarFuncionarioPanel.add(txtCargoFuncionario);
-        cadastrarFuncionarioPanel.add(lblSalarioFuncionario);
-        cadastrarFuncionarioPanel.add(txtSalarioFuncionario);
-        cadastrarFuncionarioPanel.add(lblNascimentoFuncionario);
-        cadastrarFuncionarioPanel.add(txtNascimentoFuncionario);
-        cadastrarFuncionarioPanel.add(new JLabel());
-        cadastrarFuncionarioPanel.add(btnCadastrarFuncionario);
-        tabbedPane.addTab("Cadastrar Funcionário", cadastrarFuncionarioPanel);
-
-        // Sorteio Panel
-        JPanel sorteioPanel = new JPanel();
-        sorteioPanel.setLayout(new BorderLayout());
-        JTextArea txtSorteio = new JTextArea();
-        txtSorteio.setEditable(false);
-        JScrollPane scrollSorteio = new JScrollPane(txtSorteio);
-        JButton btnRealizarSorteio = new JButton("Realizar Sorteio");
-        btnRealizarSorteio.addActionListener(e -> {
-            txtSorteio.setText("");
-            ClienteEspecial clienteSorteado = vendaDAO.realizarSorteio();
-            if (clienteSorteado != null) {
-                txtSorteio.append("Cliente Sorteado:\n");
-                txtSorteio.append("ID: " + clienteSorteado.getIdCliente() + "\n");
-                txtSorteio.append("Nome: " + clienteSorteado.getNome() + "\n");
-            }
-        });
-        sorteioPanel.add(scrollSorteio, BorderLayout.CENTER);
-        sorteioPanel.add(btnRealizarSorteio, BorderLayout.SOUTH);
-        tabbedPane.addTab("Sorteio", sorteioPanel);
-
-        // Reajuste Panel
-        JPanel reajustePanel = new JPanel();
-        reajustePanel.setLayout(new GridLayout(3, 2));
-        JLabel lblCategoria = new JLabel("Categoria:");
-        JTextField txtCategoria = new JTextField();
-        JLabel lblPercentual = new JLabel("Percentual (%):");
-        JTextField txtPercentual = new JTextField();
-        JButton btnReajustar = new JButton("Aplicar Reajuste");
-        btnReajustar.addActionListener(e -> {
-            try {
-                String categoria = txtCategoria.getText();
-                double percentual = Double.parseDouble(txtPercentual.getText());
-                if (percentual < 0) {
-                    JOptionPane.showMessageDialog(frame, "O percentual deve ser um número positivo!");
-                    return;
-                }
-                vendaDAO.reajustarSalario(categoria, percentual);
-                txtCategoria.setText("");
-                txtPercentual.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "O percentual deve ser um número válido!");
-            }
-        });
-        reajustePanel.add(lblCategoria);
-        reajustePanel.add(txtCategoria);
-        reajustePanel.add(lblPercentual);
-        reajustePanel.add(txtPercentual);
-        reajustePanel.add(new JLabel());
-        reajustePanel.add(btnReajustar);
-        tabbedPane.addTab("Reajuste", reajustePanel);
-
-        // Listar Funcionários Panel
-        JPanel listarFuncionariosPanel = new JPanel();
-        listarFuncionariosPanel.setLayout(new BorderLayout());
-        JTextArea txtFuncionarios = new JTextArea();
-        txtFuncionarios.setEditable(false);
-        JScrollPane scrollFuncionarios = new JScrollPane(txtFuncionarios);
-        JButton btnAtualizarFuncionarios = new JButton("Atualizar Lista de Funcionários");
-        btnAtualizarFuncionarios.addActionListener(e -> {
-            txtFuncionarios.setText("");
-            List<Funcionario> funcionarios = vendaDAO.listarFuncionarios();
-            for (Funcionario funcionario : funcionarios) {
-                txtFuncionarios.append("ID: " + funcionario.getId() + ", Nome: " + funcionario.getNome() +
-                                      ", Salário: " + funcionario.getSalario() + "\n");
-            }
-        });
-        listarFuncionariosPanel.add(scrollFuncionarios, BorderLayout.CENTER);
-        listarFuncionariosPanel.add(btnAtualizarFuncionarios, BorderLayout.SOUTH);
-        tabbedPane.addTab("Listar Funcionários", listarFuncionariosPanel);
-
-        frame.add(tabbedPane);
-        frame.setVisible(true);
-    }
+    private final JFrame frame = new JFrame("Sistema de Vendas - Eletrônicos");
+    private final OperacaoComercial dao = new OperacaoComercial();
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(SistemaVendas::new);
+    }
+
+    public SistemaVendas() {
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(750, 480);
+
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.add("Vendas",              abaRegistrarVenda());
+        tabs.add("Produtos (filtro)",   abaFiltroProdutos());
+        tabs.add("Vendas por Cliente",  abaVendasCliente());
+        tabs.add("Estatísticas",        abaEstatisticas());
+        tabs.add("Cadastrar Produto",   abaCadastrarProduto());
+        tabs.add("Cadastrar Funcionário", abaCadastrarFuncionario());
+        tabs.add("Listar Produtos",     abaListarProdutos());
+        tabs.add("Listar Funcionários", abaListarFuncionarios());
+        tabs.add("Sorteio",             abaSorteio());
+        tabs.add("Reajuste",            abaReajuste());
+
+        frame.add(tabs);
+        frame.setVisible(true);
+    }
+
+    private JPanel abaRegistrarVenda() {
+        JPanel p = new JPanel(new GridLayout(5, 2));
+
+        JTextField v  = new JTextField();
+        JTextField c  = new JTextField();
+        JTextField pr = new JTextField();
+        JTextField q  = new JTextField();
+
+        p.add(new JLabel("Vendedor ID:")); p.add(v);
+        p.add(new JLabel("Cliente ID:"));  p.add(c);
+        p.add(new JLabel("Produto ID:"));  p.add(pr);
+        p.add(new JLabel("Quantidade:"));  p.add(q);
+
+        JButton btn = new JButton("Registrar");
+        btn.addActionListener(e -> {
+            try {
+                dao.registrarVenda(Integer.parseInt(v.getText()),
+                                   Integer.parseInt(c.getText()),
+                                   Integer.parseInt(pr.getText()),
+                                   Integer.parseInt(q.getText()));
+                v.setText(""); c.setText(""); pr.setText(""); q.setText("");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Dados inválidos.");
+            }
+        });
+        p.add(new JLabel()); p.add(btn);
+        return p;
+    }
+
+    /* ---------------- filtro de produtos ---------------- */
+    private JPanel abaFiltroProdutos() {
+
+        JPanel root = new JPanel(new BorderLayout());
+        JPanel filtros = new JPanel(new GridLayout(2, 4));
+
+        JTextField nome = new JTextField();
+        JTextField min  = new JTextField();
+        JTextField max  = new JTextField();
+        JTextArea  res  = new JTextArea(); res.setEditable(false);
+
+        filtros.add(new JLabel("Nome contém:")); filtros.add(nome);
+        filtros.add(new JLabel("Preço mín:"));   filtros.add(min);
+        filtros.add(new JLabel("Preço máx:"));   filtros.add(max);
+
+        JButton buscar = new JButton("Buscar");
+        buscar.addActionListener(e -> {
+            try {
+                BigDecimal pMin = min.getText().isBlank() ? null : new BigDecimal(min.getText());
+                BigDecimal pMax = max.getText().isBlank() ? null : new BigDecimal(max.getText());
+
+                List<Produto> lista = dao.filtrarProdutos(
+                        nome.getText().isBlank() ? null : nome.getText(),
+                        pMin, pMax);
+
+                res.setText("");
+                if (lista.isEmpty()) {
+                    res.append("Nenhum produto encontrado.");
+                } else {
+                    for (Produto p : lista) {
+                        res.append(String.format("ID%-4d %-25s  R$ %8.2f  Qtd:%d%n",
+                                p.getId(), p.getNome(), p.getValor(), p.getQuantidade()));
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Preços inválidos.");
+            }
+        });
+        filtros.add(new JLabel()); filtros.add(buscar);
+
+        root.add(filtros, BorderLayout.NORTH);
+        root.add(new JScrollPane(res), BorderLayout.CENTER);
+        return root;
+    }
+
+    /* ---------------- vendas por cliente ---------------- */
+    private JPanel abaVendasCliente() {
+
+        JPanel root = new JPanel(new BorderLayout());
+        JPanel topo = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        JTextField id = new JTextField(6);
+        JTextArea  txt = new JTextArea(); txt.setEditable(false);
+
+        JButton buscar = new JButton("Buscar");
+        buscar.addActionListener(e -> {
+            try {
+                int clienteId = Integer.parseInt(id.getText());
+                List<Venda> vendas = dao.listarVendasPorCliente(clienteId);
+
+                txt.setText("");
+                if (vendas.isEmpty()) {
+                    txt.append("Sem vendas para o cliente.\n");
+                } else {
+                    for (Venda v : vendas) {
+                        txt.append(String.format(
+                            "Venda %d  (%tF)  → %dx %s  [R$ %.2f]%n",
+                            v.getId(), v.getData(), v.getQuantidade(),
+                            v.getNomeProduto(), v.getValorTotal()));
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "ID inválido.");
+            }
+        });
+
+        topo.add(new JLabel("Cliente ID:"));
+        topo.add(id);
+        topo.add(buscar);
+
+        root.add(topo, BorderLayout.NORTH);
+        root.add(new JScrollPane(txt), BorderLayout.CENTER);
+        return root;
+    }
+
+    /* ---------------- estatísticas --------------------- */
+    private JPanel abaEstatisticas() {
+        JTextArea txt = new JTextArea(); txt.setEditable(false);
+        JButton btn   = new JButton("Atualizar");
+        btn.addActionListener(e -> txt.setText(dao.obterEstatisticas()));
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JScrollPane(txt), BorderLayout.CENTER);
+        p.add(btn, BorderLayout.SOUTH);
+        return p;
+    }
+
+    /* ---------------- cadastro produto ----------------- */
+    private JPanel abaCadastrarProduto() {
+
+        JPanel p = new JPanel(new GridLayout(6, 2));
+        JTextField n = new JTextField(),
+                   q = new JTextField(),
+                   d = new JTextField(),
+                   v = new JTextField();
+
+        p.add(new JLabel("Nome:"));       p.add(n);
+        p.add(new JLabel("Quantidade:")); p.add(q);
+        p.add(new JLabel("Descrição:"));  p.add(d);
+        p.add(new JLabel("Valor R$:"));   p.add(v);
+
+        JButton btn = new JButton("Salvar");
+        btn.addActionListener(e -> {
+            try {
+                dao.cadastrarProduto(n.getText(),
+                        Integer.parseInt(q.getText()),
+                        d.getText(),
+                        new BigDecimal(v.getText()));
+                n.setText(""); q.setText(""); d.setText(""); v.setText("");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Dados inválidos.");
+            }
+        });
+        p.add(new JLabel()); p.add(btn);
+        return p;
+    }
+
+    /* ---------------- cadastro funcionário -------------- */
+    private JPanel abaCadastrarFuncionario() {
+
+        JPanel p = new JPanel(new GridLayout(7,2));
+        JTextField n=new JTextField(),
+                   i=new JTextField(),
+                   s=new JTextField(),
+                   c=new JTextField(),
+                   sal=new JTextField(),
+                   nas=new JTextField();
+
+        p.add(new JLabel("Nome:")); p.add(n);
+        p.add(new JLabel("Idade:")); p.add(i);
+        p.add(new JLabel("Sexo (M/F/O):")); p.add(s);
+        p.add(new JLabel("Cargo:")); p.add(c);
+        p.add(new JLabel("Salário R$:")); p.add(sal);
+        p.add(new JLabel("Nascimento (yyyy-MM-dd):")); p.add(nas);
+
+        JButton btn = new JButton("Salvar");
+        btn.addActionListener(e -> {
+            try {
+                java.sql.Date nascimento = new java.sql.Date(
+                        new SimpleDateFormat("yyyy-MM-dd")
+                                .parse(nas.getText()).getTime());
+                dao.cadastrarFuncionario(
+                        n.getText(),
+                        Integer.parseInt(i.getText()),
+                        s.getText(), c.getText(),
+                        new BigDecimal(sal.getText()),
+                        nascimento);
+                n.setText(""); i.setText(""); s.setText("");
+                c.setText(""); sal.setText(""); nas.setText("");
+            } catch (NumberFormatException | ParseException ex) {
+                JOptionPane.showMessageDialog(frame, "Dados inválidos.");
+            }
+        });
+        p.add(new JLabel()); p.add(btn);
+        return p;
+    }
+
+    /* ---------------- listar produtos ------------------ */
+    private JPanel abaListarProdutos() {
+        JTextArea txt = new JTextArea(); txt.setEditable(false);
+        JButton btn = new JButton("Atualizar");
+        btn.addActionListener(e -> {
+            txt.setText("");
+            for (Produto pr : dao.listarProdutos()) {
+                txt.append(String.format("%-25s | Qtd:%3d | R$ %8.2f%n",
+                        pr.getNome(), pr.getQuantidade(), pr.getValor()));
+            }
+        });
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JScrollPane(txt), BorderLayout.CENTER);
+        p.add(btn, BorderLayout.SOUTH);
+        return p;
+    }
+
+    /* ---------------- listar funcionários --------------- */
+    private JPanel abaListarFuncionarios() {
+        JTextArea txt = new JTextArea(); txt.setEditable(false);
+        JButton btn = new JButton("Atualizar");
+        btn.addActionListener(e -> {
+            txt.setText("");
+            for (Funcionario f : dao.listarFuncionarios()) {
+                txt.append(String.format("ID %d | %-20s | R$ %.2f%n",
+                        f.getId(), f.getNome(), f.getSalario()));
+            }
+        });
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JScrollPane(txt), BorderLayout.CENTER);
+        p.add(btn, BorderLayout.SOUTH);
+        return p;
+    }
+
+    /* ---------------- sorteio --------------------------- */
+    private JPanel abaSorteio() {
+        JTextArea txt = new JTextArea(); txt.setEditable(false);
+        JButton btn = new JButton("Sortear");
+        btn.addActionListener(e -> {
+            ClienteEspecial c = dao.realizarSorteio();
+            txt.setText("");
+            if (c != null) {
+                txt.append(String.format("Sorteado → ID %d | %s%n",
+                        c.getIdCliente(), c.getNome()));
+            }
+        });
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JScrollPane(txt), BorderLayout.CENTER);
+        p.add(btn, BorderLayout.SOUTH);
+        return p;
+    }
+
+    /* ---------------- reajuste -------------------------- */
+    private JPanel abaReajuste() {
+        JPanel p = new JPanel(new GridLayout(3,2));
+        JTextField cat = new JTextField(), per = new JTextField();
+
+        p.add(new JLabel("Categoria:")); p.add(cat);
+        p.add(new JLabel("Percentual %:")); p.add(per);
+
+        JButton btn = new JButton("Aplicar");
+        btn.addActionListener(e -> {
+            try {
+                double pct = Double.parseDouble(per.getText());
+                if (pct < 0) throw new NumberFormatException();
+                dao.reajustarSalario(cat.getText(), pct);
+                cat.setText(""); per.setText("");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Percentual inválido.");
+            }
+        });
+        p.add(new JLabel()); p.add(btn);
+        return p;
     }
 }
