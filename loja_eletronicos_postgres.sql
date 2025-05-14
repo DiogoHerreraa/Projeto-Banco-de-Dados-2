@@ -86,3 +86,12 @@ INSERT INTO produto (nome_produto, quantidade_produto, descricao_produto, valor_
 ('Controle Bluetooth', 38, 'Conexão rápida e sem fio', 239.98),
 ('Microfone Condensador', 17, 'Captação de áudio profissional', 312.84),
 ('Roteador Wi-Fi 5', 29, 'Sinal forte e estável', 258.64);
+
+
+DROP VIEW IF EXISTS view_produtos_quantidade;
+
+CREATE OR REPLACE VIEW view_produtos_quantidade AS
+SELECT 
+    nome_produto AS nome,
+    quantidade_produto AS quantidade
+FROM produto;
