@@ -1,97 +1,140 @@
--- Script PostgreSQL convertido de MySQL
--- Banco: LOJA_ELETRONICOS
+DROP VIEW IF EXISTS view_vendas_funcionario;
+CREATE OR REPLACE VIEW view_vendas_funcionario AS
+SELECT   f.nome                AS vendedor,
+         COUNT(v.id_venda)     AS total_vendas
+FROM     venda v
+JOIN     funcionario f ON f.id_funcionario = v.id_vendedor
+GROUP BY f.nome
+ORDER BY total_vendas DESC;
 
-DROP TABLE IF EXISTS item_venda, venda, funcionario_especial, funcionario, cliente_especial, cliente_padrao, produto CASCADE;
-
--- Criação de Tabelas
-CREATE TABLE cliente_padrao (
-    id_cpadrao SERIAL PRIMARY KEY,
-    nome_cpadrao VARCHAR(50) NOT NULL,
-    sexo CHAR(1) CHECK (sexo IN ('M','F','O')) NOT NULL,
-    idade INT,
-    nascimento DATE
+DROP FUNCTION IF EXISTS registrar_venda(
+    DATE, INT, TEXT, INT, TEXT, INT, TEXT, INT, NUMERIC
 );
 
-CREATE TABLE cliente_especial (
-    id_cespecial SERIAL PRIMARY KEY,
-    nome_cespecial VARCHAR(50),
-    sexo CHAR(1) CHECK (sexo IN ('M','F','O')),
-    idade INT,
-    cashback NUMERIC(10,2),
-    id_cliente INT REFERENCES cliente_padrao(id_cpadrao)
-);
+CREATE OR REPLACE FUNCTION registrar_venda(
+    p_data            DATE,
+    p_id_vendedor     INT,
+    p_nome_vendedor   TEXT,
+    p_id_cliente      INT,
+    p_nome_cliente    TEXT,
+    p_id_produto      INT,
+    p_nome_produto    TEXT,
+    p_quantidade      INT,
+    p_valor_unitario  NUMERIC
+) RETURNS VOID
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_id_venda  INT;
+BEGIN
+    -- 1) lança a venda
+    INSERT INTO venda (data_venda, id_vendedor, id_cliente)
+    VALUES (p_data, p_id_vendedor, p_id_cliente)
+    RETURNING id_venda INTO v_id_venda;
 
-CREATE TABLE funcionario (
-    id_funcionario SERIAL PRIMARY KEY,
-    nome VARCHAR(50) NOT NULL,
-    idade INT,
-    nascimento DATE,
-    sexo CHAR(1) CHECK (sexo IN ('M','F','O')),
-    cargo VARCHAR(50) CHECK (cargo IN ('CEO','FINANCEIRO','VENDEDOR','ATENDENTE DE SUPORTE AO CLIENTE','GERENTE DE OPERAÇÕES')),
-    salario NUMERIC(10,2)
-);
+    -- 2) lança o(s) item(ns)
+    INSERT INTO item_venda (id_venda, id_produto,
+                            nome_produto_vendido, quantidade,
+                            valor_unitario, valor_total)
+    VALUES ( v_id_venda,
+             p_id_produto,
+             p_nome_produto,
+             p_quantidade,
+             p_valor_unitario,
+             p_valor_unitario * p_quantidade );
 
-CREATE TABLE venda (
-    id_venda SERIAL PRIMARY KEY,
-    data_venda DATE,
-    id_vendedor INT REFERENCES funcionario(id_funcionario),
-    id_cliente INT REFERENCES cliente_padrao(id_cpadrao)
-);
+    -- 3) baixa o estoque
+    UPDATE produto
+       SET quantidade_produto = quantidade_produto - p_quantidade
+     WHERE idproduto = p_id_produto;
+END;
+$$;
 
-CREATE TABLE produto (
-    idproduto SERIAL PRIMARY KEY,
-    nome_produto VARCHAR(50),
-    quantidade_produto INT,
-    descricao_produto VARCHAR(100),
-    valor_produto NUMERIC(10,2)
-);
+DROP FUNCTION IF EXISTS reajustar_salario(TEXT, NUMERIC);
+CREATE OR REPLACE FUNCTION reajustar_salario(
+    p_cargo       TEXT,
+    p_percentual  NUMERIC
+) RETURNS VOID
+LANGUAGE plpgsql AS
+$$
+BEGIN
+    UPDATE funcionario
+       SET salario = salario * (1 + p_percentual/100.0)
+     WHERE UPPER(cargo) = UPPER(p_cargo);
+END;
+$$;
 
-CREATE TABLE item_venda (
-    id_item SERIAL PRIMARY KEY,
-    id_venda INT REFERENCES venda(id_venda),
-    id_produto INT REFERENCES produto(idproduto),
-    nome_produto_vendido VARCHAR(50),
-    quantidade INT,
-    valor_unitario NUMERIC(10,2),
-    valor_total NUMERIC(10,2)
-);
+DROP FUNCTION IF EXISTS realizar_sorteio();
+CREATE OR REPLACE FUNCTION realizar_sorteio() RETURNS VOID
+LANGUAGE plpgsql AS
+$$
+DECLARE
+    v_cliente RECORD;
+BEGIN
+    SELECT *
+      INTO v_cliente
+      FROM cliente_padrao c
+     WHERE NOT EXISTS (SELECT 1
+                         FROM cliente_especial ce
+                        WHERE ce.id_cliente = c.id_cpadrao)
+  ORDER BY random()
+     LIMIT 1;
 
-CREATE TABLE funcionario_especial (
-    id_funcionario INT PRIMARY KEY,
-    nome VARCHAR(50),
-    bonus_total NUMERIC(10,2)
-);
+    IF NOT FOUND THEN
+        RAISE NOTICE 'Todos os clientes já são especiais.';
+        RETURN;
+    END IF;
 
+    INSERT INTO cliente_especial (nome_cespecial, sexo, idade,
+                                  cashback, id_cliente)
+    VALUES (v_cliente.nome_cpadrao,
+            v_cliente.sexo,
+            v_cliente.idade,
+            0.05 * (SELECT COALESCE(SUM(iv.valor_total),0)
+                      FROM venda v
+                      JOIN item_venda iv USING(id_venda)
+                     WHERE v.id_cliente = v_cliente.id_cpadrao),
+            v_cliente.id_cpadrao);
+END;
+$$;
 
-
--- INSERTS DE PRODUTOS
-INSERT INTO produto (nome_produto, quantidade_produto, descricao_produto, valor_produto) VALUES
-('Mouse Gamer', 44, 'Alta performance para jogos', 409.95),
-('Teclado Mecânico', 63, 'Ideal para digitação e jogos', 276.99),
-('Monitor LED 24"', 32, 'Imagem Full HD nítida', 1643.77),
-('Notebook i5', 41, 'Equipamento leve e rápido', 2064.47),
-('Smartphone Android', 61, 'Sistema atualizado com boa câmera', 2195.61),
-('Carregador USB-C', 57, 'Compatível com diversos modelos', 87.66),
-('Caixa de Som Bluetooth', 94, 'Som potente e portátil', 380.96),
-('HD Externo 1TB', 15, 'Armazene seus dados com segurança', 316.31),
-('SSD 512GB', 37, 'Alta velocidade de leitura', 437.12),
-('Fone de Ouvido', 91, 'Confortável e potente', 189.94),
-('Webcam Full HD', 22, 'Imagem clara para videochamadas', 272.42),
-('Cabo HDMI 2.0', 78, 'Transmissão em alta resolução', 86.11),
-('Placa de Vídeo', 40, 'Desempenho gráfico avançado', 2439.73),
-('Fonte 600W', 95, 'Energia estável e eficiente', 378.49),
-('Memória RAM 8GB', 46, 'Velocidade e estabilidade', 286.55),
-('Hub USB 3.0', 73, 'Expanda suas conexões USB', 129.37),
-('Tablet 10"', 52, 'Ideal para estudos e vídeos', 781.23),
-('Controle Bluetooth', 38, 'Conexão rápida e sem fio', 239.98),
-('Microfone Condensador', 17, 'Captação de áudio profissional', 312.84),
-('Roteador Wi-Fi 5', 29, 'Sinal forte e estável', 258.64);
-
-
-DROP VIEW IF EXISTS view_produtos_quantidade;
-
-CREATE OR REPLACE VIEW view_produtos_quantidade AS
-SELECT 
-    nome_produto AS nome,
-    quantidade_produto AS quantidade
-FROM produto;
+DROP FUNCTION IF EXISTS calcular_estatisticas();
+CREATE OR REPLACE FUNCTION calcular_estatisticas()
+RETURNS TABLE (
+    produto_mais_vendido      TEXT,
+    vendedor_mais_vendido     TEXT,
+    produto_menos_vendido     TEXT,
+    valor_mais_vendido        NUMERIC,
+    valor_menos_vendido       NUMERIC
+) LANGUAGE plpgsql AS
+$$
+BEGIN
+    RETURN QUERY
+    WITH resumo AS (
+        SELECT iv.nome_produto_vendido AS produto,
+               SUM(iv.quantidade)      AS qtd_total,
+               SUM(iv.valor_total)     AS valor_total
+        FROM   item_venda iv
+        GROUP  BY iv.nome_produto_vendido
+    ),
+    ranking AS (
+        SELECT produto,
+               qtd_total,
+               valor_total,
+               RANK() OVER (ORDER BY qtd_total DESC) AS rk_desc,
+               RANK() OVER (ORDER BY qtd_total ASC)  AS rk_asc
+        FROM   resumo
+    )
+    SELECT  (SELECT produto      FROM ranking WHERE rk_desc = 1) AS produto_mais_vendido,
+            (SELECT f.nome
+               FROM venda v
+               JOIN funcionario f ON f.id_funcionario = v.id_vendedor
+               JOIN item_venda iv USING(id_venda)
+              GROUP BY f.nome
+              ORDER BY SUM(iv.quantidade) DESC
+              LIMIT 1) AS vendedor_mais_vendido,
+            (SELECT produto      FROM ranking WHERE rk_asc  = 1) AS produto_menos_vendido,
+            (SELECT valor_total  FROM ranking WHERE rk_desc = 1) AS valor_mais_vendido,
+            (SELECT valor_total  FROM ranking WHERE rk_asc  = 1) AS valor_menos_vendido;
+END;
+$$;
