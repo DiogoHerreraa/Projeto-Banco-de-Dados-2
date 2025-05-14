@@ -233,7 +233,8 @@ RETURNS TABLE (
     produto_menos_vendido TEXT,
     valor_mais_vendido    NUMERIC,
     valor_menos_vendido   NUMERIC
-) LANGUAGE plpgsql AS
+)
+LANGUAGE plpgsql AS
 $$
 BEGIN
     RETURN QUERY
@@ -241,27 +242,26 @@ BEGIN
         SELECT iv.nome_produto_vendido AS produto,
                SUM(iv.quantidade)      AS qtd,
                SUM(iv.valor_total)     AS valor
-          FROM item_venda iv
-      GROUP BY iv.nome_produto_vendido
+        FROM item_venda iv
+        GROUP BY iv.nome_produto_vendido
     ),
     rank_prod AS (
         SELECT produto, qtd, valor,
-               RANK() OVER (ORDER BY qtd DESC) AS rk_desc,
-               RANK() OVER (ORDER BY qtd ASC)  AS rk_asc
-          FROM resumo_prod
+               ROW_NUMBER() OVER (ORDER BY qtd DESC) AS rn_desc,
+               ROW_NUMBER() OVER (ORDER BY qtd ASC)  AS rn_asc
+        FROM resumo_prod
     )
     SELECT
-        (SELECT produto     FROM rank_prod WHERE rk_desc = 1),
-        (SELECT f.nome
-           FROM venda v
-           JOIN funcionario f ON f.id = v.id_vendedor
-           JOIN item_venda iv ON iv.id_venda = v.id
-       GROUP BY f.nome
-       ORDER BY SUM(iv.quantidade) DESC
-          LIMIT 1),
-        (SELECT produto     FROM rank_prod WHERE rk_asc  = 1),
-        (SELECT valor       FROM rank_prod WHERE rk_desc = 1),
-        (SELECT valor       FROM rank_prod WHERE rk_asc  = 1);
+        (SELECT produto::TEXT FROM rank_prod WHERE rn_desc = 1),
+        (SELECT f.nome::TEXT
+         FROM venda v
+         JOIN funcionario f ON f.id = v.id_vendedor
+         JOIN item_venda iv ON iv.id_venda = v.id
+         GROUP BY f.nome
+         ORDER BY SUM(iv.quantidade) DESC
+         LIMIT 1),
+        (SELECT produto::TEXT FROM rank_prod WHERE rn_asc = 1),
+        (SELECT valor FROM rank_prod WHERE rn_desc = 1),
+        (SELECT valor FROM rank_prod WHERE rn_asc = 1);
 END;
 $$;
-

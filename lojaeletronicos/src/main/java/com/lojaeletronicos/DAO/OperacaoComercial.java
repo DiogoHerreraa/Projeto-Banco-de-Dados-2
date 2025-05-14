@@ -23,8 +23,7 @@ public class OperacaoComercial {
     public void cadastrarProduto(String nome, int quantidade,
                                  String descricao, BigDecimal valor) {
 
-        String sql = "INSERT INTO produto (nome_produto, quantidade_produto, descricao_produto, valor_produto) "
-                   + "VALUES (?,?,?,?)";
+        String sql = "INSERT INTO produto (nome, quantidade, descricao, valor) VALUES (?,?,?,?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -75,14 +74,14 @@ public class OperacaoComercial {
         String sqlConsulta = """
             SELECT f.nome  AS nome_funcionario,
                    c.nome  AS nome_cliente,
-                   p.nome_produto AS nome_produto,
-                   p.valor_produto AS valor_unitario
+                   p.nome AS nome_produto,
+                   p.valor AS valor_unitario
             FROM   funcionario f,
-                   cliente_padrao c,
+                   cliente c,
                    produto p
-            WHERE  f.id_funcionario = ?
-              AND  c.id_cpadrao     = ?
-              AND  p.idproduto      = ?
+            WHERE  f.id = ?
+              AND  c.id = ?
+              AND  p.id = ?
         """;
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -132,10 +131,10 @@ public class OperacaoComercial {
     public List<Produto> listarProdutos() {
         List<Produto> produtos = new ArrayList<>();
         String sql = """
-            SELECT idproduto, nome_produto, quantidade_produto,
-                   descricao_produto, valor_produto
+            SELECT id, nome, quantidade,
+                   descricao, valor
             FROM   produto
-            ORDER  BY nome_produto
+            ORDER  BY nome
         """;
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -144,11 +143,11 @@ public class OperacaoComercial {
 
             while (rs.next()) {
                 produtos.add(new Produto(
-                        rs.getInt("idproduto"),
-                        rs.getString("nome_produto"),
-                        rs.getInt("quantidade_produto"),
-                        rs.getString("descricao_produto"),
-                        rs.getBigDecimal("valor_produto")));
+                        rs.getInt("id"),
+                        rs.getString("nome"),
+                        rs.getInt("quantidade"),
+                        rs.getString("descricao"),
+                        rs.getBigDecimal("valor")));
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Erro ao listar produtos", e);
@@ -164,7 +163,7 @@ public class OperacaoComercial {
 
             while (rs.next()) {
                 lista.add(new Funcionario(
-                        rs.getInt("id_funcionario"),
+                        rs.getInt("id"),
                         rs.getString("nome"),
                         rs.getInt("idade"),
                         rs.getString("sexo"),
@@ -201,13 +200,13 @@ public class OperacaoComercial {
 
         List<Produto> produtos = new ArrayList<>();
         String sql = """
-            SELECT idproduto, nome_produto, quantidade_produto,
-                   descricao_produto, valor_produto
+            SELECT id, nome, quantidade,
+                   descricao, valor
             FROM   produto
-            WHERE  ( ? IS NULL OR LOWER(nome_produto) LIKE LOWER(?))
-              AND  ( ? IS NULL OR valor_produto >= ?)
-              AND  ( ? IS NULL OR valor_produto <= ?)
-            ORDER  BY nome_produto
+            WHERE  ( ? IS NULL OR LOWER(nome) LIKE LOWER(?))
+              AND  ( ? IS NULL OR valor >= ?)
+              AND  ( ? IS NULL OR valor <= ?)
+            ORDER  BY nome
         """;
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -223,11 +222,11 @@ public class OperacaoComercial {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 produtos.add(new Produto(
-                        rs.getInt("idproduto"),
-                        rs.getString("nome_produto"),
-                        rs.getInt("quantidade_produto"),
-                        rs.getString("descricao_produto"),
-                        rs.getBigDecimal("valor_produto")));
+                        rs.getInt("id"),
+                        rs.getString("nome"),
+                        rs.getInt("quantidade"),
+                        rs.getString("descricao"),
+                        rs.getBigDecimal("valor")));
             }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Erro no filtro de produtos", e);
@@ -240,13 +239,13 @@ public class OperacaoComercial {
 
         List<Venda> vendas = new ArrayList<>();
         String sql = """
-            SELECT v.id_venda, v.id_vendedor, v.id_cliente, v.data_venda,
+            SELECT v.id, v.id_vendedor, v.id_cliente, v.data_venda,
                    iv.nome_produto_vendido, iv.quantidade,
                    iv.valor_unitario, iv.valor_total
             FROM   venda v
-            JOIN   item_venda iv ON iv.id_venda = v.id_venda
+            JOIN   item_venda iv ON iv.id = v.id
             WHERE  v.id_cliente = ?
-            ORDER  BY v.data_venda DESC, v.id_venda
+            ORDER  BY v.data_venda DESC, v.id
         """;
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -256,7 +255,7 @@ public class OperacaoComercial {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 vendas.add(new Venda(
-                        rs.getInt("id_venda"),
+                        rs.getInt("id"),
                         rs.getInt("id_vendedor"),
                         rs.getInt("id_cliente"),
                         rs.getDate("data_venda"),
@@ -302,8 +301,8 @@ public class OperacaoComercial {
 
             while (rs.next()) {
                 lista.add(new ClienteEspecial(
-                        rs.getInt("id_cespecial"),
-                        rs.getString("nome_cespecial"),
+                        rs.getInt("id"),
+                        rs.getString("nome"),
                         rs.getString("sexo"),
                         rs.getInt("idade"),
                         rs.getInt("id_cliente"),
@@ -335,7 +334,7 @@ public class OperacaoComercial {
 
             conn.setAutoCommit(false);
             ps.setString(1, categoria.toUpperCase());
-            ps.setDouble(2, percentual);
+             ps.setBigDecimal(2, BigDecimal.valueOf(percentual));
             ps.execute();
             conn.commit();
             logger.info("Reajuste aplicado à categoria " + categoria);
