@@ -2,13 +2,13 @@
 
 ## Objetivo do Projeto 
 
-Linguagem: Deve ser feito usando uma linguagem de apoio a escolha do grupo e SQL. O não cumprimento deste critério implica na nota do proieto zerada não importa a etapa
+Linguagem: Deve ser feito usando uma linguagem de apoio a escolha do grupo e SQL. O não cumprimento deste critério implica na nota do proieto zerada não importa a etapa.
 
 Implementação: Todos os requisitos abaixo DEVEM ser implementados com queres em SQL e
-enviadas nara o banco de dados através da tuncão da biblioteca usada
+enviadas nara o banco de dados através da tuncão da biblioteca usada.
 
 Contexto: E um sistema de e-commerce de produtos diversos, o grupo tem liberdade criativa de
-definir o contexto do e-commerce
+definir o contexto do e-commerce.
 
 O sistema deve ser criado de acordo com o modelo descrito abaixo:
 
@@ -21,8 +21,9 @@ O sistema deve possuir a opção de cadastrar apenas produtos e clientes;
 Implemente 3 triggers:
 Caso um vendedor venda mais de RS 1000.00 ele vai para a tabela de funcionário
 especial e calcule o bônus em seu salário sendo 5% do valor vendido;
+
 Então crie um gatilho que emita uma mensagem informando auando de bônus salarial total será
-necessario para custear
+necessario para custear.
 
 Caso um cliente combre mais de 500.00. adicione ele na tabela de clientes especiais
 e adicione um valor de cash back de 2% do valor gasto: Então crie um gatilho que emita uma mensagem informando qual valor será necessário para lidar com todo
@@ -44,19 +45,26 @@ Reajuste - Receba um reajuste de salário no formato percentual e uma categoria,
 
 Sorteio - Sorteie aleatoriamente um cliente para que este cliente receba uma
 premiacao. um voucher de 100 reais. caso este cliente esteja na tabela de clientes
-especiais ele recebera um voucher de zoo reais ao inves de I00
+especiais ele recebera um voucher de zoo reais ao inves de I00.
 
 Venda - Sempre que uma venda for feita reduza em 1 a quantidade do produto na
-base de dados
+base de dados.
 
 Estatísticas - Vá na tabela de vendas e exiba as seguintes estatísticas:
-Produto mais vendido
-Vendedor associado ao produto mais vendido
-Produto menos vendido
-valor ganho com o produto mais vendido
-Mês de maior vendas e mês de menor vendas do produto mais vendido
-Valor ganho com o produto menos vendido
-Mês de maior vendas e mês de menor vendas do produto menos vendido
+
+Produto mais vendido.
+
+Vendedor associado ao produto mais vendido.
+
+Produto menos vendido.
+
+Valor ganho com o produto mais vendido.
+
+Mês de maior vendas e mês de menor vendas do produto mais vendido.
+
+Valor ganho com o produto menos vendido.
+
+Mês de maior vendas e mês de menor vendas do produto menos vendido.
 
 BANCO E DADOS empresa
 cliente (id, nome, sexo, idade, nascimento)
@@ -71,7 +79,15 @@ Cargo deve ser 'vendedor', 'gerente' ou 'CEO'
 
 ## Technologies used
 
+Maven.
+
 Java.
+
+Java Swing.
+
+JDBC.
+
+PostgreSQL.
 
 
 ## Authors
@@ -79,9 +95,11 @@ Java.
 ### Diogo Herrera 
 --> https://github.com/DiogoHerreraa
 ### Felipe Moraes
---> https://github.com/LuizEstrelaIII
+--> https://github.com/FelipeDeMoraes19
 ### Nedson Nogueria
 --> https://github.com/Nedsonjr10
+### Antonio Castelão
+--> https://github.com/agcastelao
 
 
 
